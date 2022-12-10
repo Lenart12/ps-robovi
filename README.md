@@ -1,14 +1,13 @@
 # ps-robovi
-Odkrivanje robov v slikah
 
-2 Odkrivanje robov v slikah
+# Odkrivanje robov v slikah
 Odkrivanje robov predstavlja enega temeljnih postopkov pri procesiranju slik [7]. Z nje-
 govo pomočjo iz slike izluščimo informacijo o prisotnih strukturah. Uporablja se v po-
 stopkih računalniškega vida, kot na primer razpoznavanje objektov, detekcijo voznega
 pasu, razpoznavanje prstnih odtisov, obdelava medicinskih slik. Razvitih je bilo veliko
 metod za odkrivanje robov, ena od bolj znanih je Cannyev detektor [8].
 
-2.1 Cannyev detektor
+## 2.1 Cannyev detektor
 Postopek odkrivanja robov je sestavljen iz petih korakov:
 
 1. Glajenje oziroma odstranjevanje šuma z Gaussovim filtrom
@@ -83,7 +82,7 @@ uporabe OpenCV v jeziku Python za odkrivanje robov najdete na povezavi. Knjižni
 OpenCV lahko uporabite v kombinaciji z jezikom C/C++, navodila za namestitev naj-
 dete tukaj.
 
-2.2 Naloga
+## 2.2 Naloga
 Na voljo imamo večje število slik, v katerih želimo poiskati robove. Postopek želimo
 čim bolj pohitriti. Iskanje robov v sliki je sestavljeno iz petih zgoraj navedenih korakov
 ter branja vhodne ter zapisovanja izhode slike. Izvajanje lahko organiziramo kot cevo-
