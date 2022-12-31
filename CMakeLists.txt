@@ -10,3 +10,6 @@ add_executable(
     src/stb/stb_image_write.h
     src/stb/stb_image.h
 )
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+target_link_libraries(ps-robovi PUBLIC pthread)
