@@ -21,8 +21,6 @@ void serial_main(vector<string> args) ;
 
 
 void ps_main(vector<string> args) {
-    cout << "OpenCV " << CV_VERSION << endl;
-
     if (args.size() == 0) {
         cerr << "Manjka argument [pthread/mpi/serial]" << endl;
         return;
@@ -40,8 +38,6 @@ void ps_main(vector<string> args) {
         cerr << "Prvi argument ni [pthread/mpi/serial]" << endl;
         return;
     }
-
-    cout << "Done!" << endl;
 }
 
 int main(int argc, char *argv[])
