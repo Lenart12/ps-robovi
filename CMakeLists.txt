@@ -4,19 +4,20 @@ project(ps-robovi)
 set(CMAKE_CXX_STANDARD 20)
 
 
-FIND_PACKAGE( OpenCV REQUIRED )                              
-INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} )
+find_package( OpenCV REQUIRED )                              
+include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 add_executable(
     ps-robovi
     src/main.cpp
     src/mpi_main.cpp
     src/pthread_main.cpp
+    src/serial_main.cpp
     src/Canny.cpp
     src/Canny.h
-    src/stb/stb_image_write.h
-    src/stb/stb_image.h
+    src/ImageOps.cpp
+    src/ImageOps.h
 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-target_link_libraries(ps-robovi PUBLIC pthread)
+target_link_libraries(ps-robovi PUBLIC pthread ${OpenCV_LIBS})

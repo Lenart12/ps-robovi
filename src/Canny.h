@@ -5,14 +5,14 @@
 #ifndef PS_ROBOVI_CANNY_H
 #define PS_ROBOVI_CANNY_H
 
-#include <vector>
-#include <opencv2/core/mat.hpp>
-#include <opencv2/imgcodecs.hpp>
+#include <opencv2/opencv.hpp>
 
-using std::vector;
+
+using cv::Mat;
 
 class Canny {
-
+public:
+    static Mat canny_cv2_builtin(Mat& image, double threshold_low, double threshold_high);
 };
 
 

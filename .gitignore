@@ -33,6 +33,7 @@
 
 opencv*
 build
+output
 
 CMakeFiles
 cmake_install.cmake

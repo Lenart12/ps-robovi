@@ -17,22 +17,27 @@ using std::endl;
 
 void pthread_main(vector<string> args) ;
 void mpi_main(vector<string> args) ;
+void serial_main(vector<string> args) ;
 
 
 void ps_main(vector<string> args) {
     cout << "OpenCV " << CV_VERSION << endl;
 
     if (args.size() == 0) {
-        cerr << "Manjka argument [pthread/mpi]" << endl;
+        cerr << "Manjka argument [pthread/mpi/serial]" << endl;
         return;
     }
+
+    args.erase(args.begin());
 
     if (args[0] == "mpi") {
         mpi_main(std::move(args));
     } else if (args[0] == "pthread") {
         pthread_main(std::move(args));
+    } else if (args[0] == "serial") {
+        serial_main(std::move(args));
     } else {
-        cerr << "Prvi argument ni [pthread/mpi]" << endl;
+        cerr << "Prvi argument ni [pthread/mpi/serial]" << endl;
         return;
     }
 
