@@ -8,6 +8,8 @@
 #include <mpi.h>
 #include <pthread.h>
 
+#include <opencv2/core/version.hpp>
+
 using std::vector;
 using std::array;
 using std::string;
@@ -25,6 +27,10 @@ void ps_main(vector<string> args) {
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    cout << "OpenCV " << CV_VERSION_MAJOR    << " "
+                      << CV_VERSION_MINOR    << " "
+                      << CV_VERSION_REVISION << endl;
 
     cout << "Args " << args.size() << endl;
 

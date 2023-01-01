@@ -3,6 +3,10 @@ project(ps-robovi)
 
 set(CMAKE_CXX_STANDARD 20)
 
+
+FIND_PACKAGE( OpenCV REQUIRED )                              
+INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} )
+
 add_executable(
     ps-robovi
     src/main.cpp

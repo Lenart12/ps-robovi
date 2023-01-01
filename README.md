@@ -1,5 +1,7 @@
 # ps-robovi
 
+# Glej tudi: uporaba.md
+
 # Odkrivanje robov v slikah
 Odkrivanje robov predstavlja enega temeljnih postopkov pri procesiranju slik [7]. Z nje-
 govo pomočjo iz slike izluščimo informacijo o prisotnih strukturah. Uporablja se v po-

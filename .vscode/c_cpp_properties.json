@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${env:HOME}/.local/include/opencv4/**",
                 "/usr/include/openmpi-x86_64"
             ],
             "defines": [],
