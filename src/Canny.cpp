@@ -10,9 +10,16 @@
 #include <cassert>
 #include <set>
 
+#include "ScopeTimer.h"
+
 using std::set;
 
+// Change commented out line to enable internak timers
+#define CannyTimer()
+// #define CannyTimer() FunctionZeroTimer()
+
 Mat Canny::canny_cv2_builtin(Mat& image, double threshold_low, double threshold_high) {
+    CannyTimer();
     Mat edges;
 
     cv::Canny(image, edges, threshold_low, threshold_high);
@@ -22,6 +29,8 @@ Mat Canny::canny_cv2_builtin(Mat& image, double threshold_low, double threshold_
 
 Mat Canny::canny(Mat const &image, double threshold_low, double threshold_high)
 {
+    CannyTimer();
+
     auto blurred = Canny::gaussian_blur(image);
     auto gm = Canny::gradient_magnitude(blurred);
     auto nonmax = Canny::gradient_nonmaximum_suppresion(gm);
@@ -33,6 +42,7 @@ Mat Canny::canny(Mat const &image, double threshold_low, double threshold_high)
 
 Mat Canny::gaussian_blur(Mat const &image)
 {
+    CannyTimer();
     auto gaussian_kernel = cv::getGaussianKernel(5, 1.1);
 
     Mat blurred;
@@ -44,6 +54,7 @@ Mat Canny::gaussian_blur(Mat const &image)
 
 Canny::AngleMagniutude Canny::gradient_magnitude(Mat const &image)
 {
+    CannyTimer();
     Mat gradient_x, gradient_y;
 
     cv::Sobel(image, gradient_x, CV_32F, 1, 0);
@@ -58,6 +69,7 @@ Canny::AngleMagniutude Canny::gradient_magnitude(Mat const &image)
 
 Mat Canny::gradient_nonmaximum_suppresion(AngleMagniutude const &angle_magniutude)
 {
+    CannyTimer();
     auto const& angle = angle_magniutude.angle;
     auto const& magniutude = angle_magniutude.magnitude;
 
@@ -121,6 +133,7 @@ Mat Canny::gradient_nonmaximum_suppresion(AngleMagniutude const &angle_magniutud
 
 Mat Canny::double_threshold(Mat const &image, double threshold_low, double threshold_high)
 {
+    CannyTimer();
     Mat thresholded { image.size(), CV_8U, cv::Scalar(Unimportant) };
 
     auto threshold_pixel = [&](auto x, auto y) {
@@ -141,6 +154,7 @@ Mat Canny::double_threshold(Mat const &image, double threshold_low, double thres
 
 Mat Canny::hysteresis(Mat const &image)
 {
+    CannyTimer();
     Mat hystereised = Mat::zeros(image.size(), CV_8U);
 
     auto sx = hystereised.cols;
