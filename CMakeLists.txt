@@ -17,6 +17,8 @@ add_executable(
     src/Canny.h
     src/ImageOps.cpp
     src/ImageOps.h
+    src/ScopeTimer.cpp
+    src/ScopeTimer.h
 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)

@@ -22,5 +22,6 @@ case "$PS_MAIN" in
 esac
 
 mkdir -p output
+rm output/*
 
 ./build.sh && srun --reservation=fri --mpi=pmix -n"$TASK_COUNT" -c"$CPUS_PER_TASK" cmake-build/ps-robovi "$PS_MAIN"

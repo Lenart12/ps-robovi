@@ -2,8 +2,10 @@
 #include <string>
 #include <array>
 #include <iostream>
+#include <filesystem>
 
 #include "ImageOps.h"
+#include "ScopeTimer.h"
 #include "Canny.h"
 
 using std::vector;
@@ -11,6 +13,8 @@ using std::array;
 using std::string;
 using std::cout;
 using std::endl;
+using std::filesystem::path;
+using std::filesystem::directory_iterator;
 
 void test_lena_png() {
     auto lena = ImageOps::read_image("images/lena.png");
@@ -19,7 +23,6 @@ void test_lena_png() {
     auto lena_edges = Canny::canny_cv2_builtin(lena, 50, 200);
     ImageOps::write_image("output/lena_canny_cv2.png", lena_edges);
 
-    Mat edges_image;
     auto lena_blurred = Canny::gaussian_blur(lena);
     ImageOps::write_image("output/lena_blurred.png", lena_blurred);
 
@@ -37,9 +40,19 @@ void test_lena_png() {
     ImageOps::write_image("output/lena_hyst.png", lena_hyst);
 }
 
+path input_directory { "images" };
+path output_directory { "output" };
 
 void serial_main(vector<string> args) {
-    test_lena_png();
+    FunctionTimer();
+
+    for (auto const& entry : directory_iterator(input_directory)) {
+        ScopeTimer image_timer {entry.path(), true};
+        auto image = ImageOps::read_image(entry.path());
+        auto canny_image = Canny::canny(image, 20, 150);
+        auto output_path = output_directory / entry.path().filename();
+        ImageOps::write_image(output_path.string(), canny_image);
+    }
 }
 
 

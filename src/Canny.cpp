@@ -22,14 +22,13 @@ Mat Canny::canny_cv2_builtin(Mat& image, double threshold_low, double threshold_
 
 Mat Canny::canny(Mat const &image, double threshold_low, double threshold_high)
 {
-    Mat edges_image;
-    edges_image = gaussian_blur(image);
-    auto gm = gradient_magnitude(edges_image);
-    edges_image = gradient_nonmaximum_suppresion(gm);
-    edges_image = double_threshold(edges_image, threshold_low, threshold_high);
-    edges_image = hysteresis(image);
+    auto blurred = Canny::gaussian_blur(image);
+    auto gm = Canny::gradient_magnitude(blurred);
+    auto nonmax = Canny::gradient_nonmaximum_suppresion(gm);
+    auto threshold = Canny::double_threshold(nonmax, threshold_low, threshold_high);
+    auto hysteresis = Canny::hysteresis(threshold);
 
-    return edges_image;
+    return hysteresis;
 }
 
 Mat Canny::gaussian_blur(Mat const &image)
