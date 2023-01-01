@@ -53,6 +53,10 @@ zdaj pa si pojdi po kavico ker bo trajalo par minut
 
 Zbuilda ce je potrebno in pozene na racunskih vozliscih
 
-`./run.sh`
+`./run.sh (mpi/pthread)`
 
-Ce hoces lahko odpres datoteko in spremenis `NODES_COUNT` in `CPUS_PER_NODE`
+`./run.sh mpi [task count=8] [cpus per task=1]`
+
+`./run.sh pthread [cpus per task=8] [task count=1]`
+
+Pazi drugacen vrsten red argumentov pri mpi/pthread
