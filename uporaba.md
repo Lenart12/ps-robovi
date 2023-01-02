@@ -55,10 +55,10 @@ Zbuilda ce je potrebno in pozene na racunskih vozliscih
 
 `./run.sh (mpi/pthread/serial)`
 
-`./run.sh mpi [task count=8] [cpus per task=1]`
+`./run.sh mpi [task count=8] argumenti...`
 
-`./run.sh pthread [cpus per task=8] [task count=1]`
+`./run.sh pthread [cpus per task=8] argumenti...`
 
 `./run.sh serial`
 
-Pazi drugacen vrsten red argumentov pri mpi/pthread
+

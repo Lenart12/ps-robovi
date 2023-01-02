@@ -1,8 +1,9 @@
 #include "ImageOps.h"
 
+using std::make_unique;
 
-Mat ImageOps::read_image(string const& file_name) {
-    return cv::imread(file_name.c_str(), cv::IMREAD_GRAYSCALE);
+unique_ptr<Mat> ImageOps::read_image(string const& file_name) {
+    return make_unique<Mat>(cv::imread(file_name.c_str(), cv::IMREAD_GRAYSCALE));
 }
 
 

@@ -64,6 +64,14 @@
         "stack": "cpp",
         "set": "cpp",
         "filesystem": "cpp",
-        "ios": "cpp"
+        "ios": "cpp",
+        "bit": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "cinttypes": "cpp",
+        "variant": "cpp"
     }
 }

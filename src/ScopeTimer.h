@@ -8,24 +8,25 @@
 
 #include <string>
 #include <chrono>
+#include <pthread.h>
 
 using std::string;
 using namespace std::chrono;
 
-#define FunctionTimer()         ScopeTimer __function_timer{__PRETTY_FUNCTION__}
-#define FunctionZeroTimer()     ScopeTimer __function_zero_timer{__PRETTY_FUNCTION__, true}
+#define FunctionTimer()         ScopeTimer __function_timer{__PRETTY_FUNCTION__, true}
+#define FunctionNonzeroTimer()     ScopeTimer __function_zero_timer{__PRETTY_FUNCTION__, false}
 
 class ScopeTimer
 {
 public:
     ScopeTimer(string name = "Unnamed timer", bool bShowZero = false);
+    ScopeTimer(ScopeTimer&& other);
     ~ScopeTimer();
 private:
     time_point<high_resolution_clock> m_time;
     string m_name;
+    bool m_moved = false;
     bool m_bShowZero;
-
-    static uint8_t s_callDepth;
 };
 
 #endif // SCOPETIMER_H

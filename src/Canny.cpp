@@ -13,46 +13,48 @@
 #include "ScopeTimer.h"
 
 using std::set;
+using std::make_unique;
 
 // Change commented out line to enable internak timers
 #define CannyTimer()
-// #define CannyTimer() FunctionZeroTimer()
+// #define CannyTimer() FunctionTimer()
 
-Mat Canny::canny_cv2_builtin(Mat& image, double threshold_low, double threshold_high) {
+unique_ptr<Mat> Canny::canny_cv2_builtin(Mat const& image, double threshold_low, double threshold_high) {
     CannyTimer();
-    Mat edges;
 
-    cv::Canny(image, edges, threshold_low, threshold_high);
+    auto edges = make_unique<Mat>();
+
+    cv::Canny(image, *edges, threshold_low, threshold_high);
 
     return edges;
 }
 
-Mat Canny::canny(Mat const &image, double threshold_low, double threshold_high)
+unique_ptr<Mat> Canny::canny(Mat const &image, double threshold_low, double threshold_high)
 {
     CannyTimer();
 
     auto blurred = Canny::gaussian_blur(image);
-    auto gm = Canny::gradient_magnitude(blurred);
-    auto nonmax = Canny::gradient_nonmaximum_suppresion(gm);
-    auto threshold = Canny::double_threshold(nonmax, threshold_low, threshold_high);
-    auto hysteresis = Canny::hysteresis(threshold);
+    auto gm = Canny::gradient_magnitude(*blurred);
+    auto nonmax = Canny::gradient_nonmaximum_suppresion(*gm);
+    auto threshold = Canny::double_threshold(*nonmax, threshold_low, threshold_high);
+    auto hysteresis = Canny::hysteresis(*threshold);
 
     return hysteresis;
 }
 
-Mat Canny::gaussian_blur(Mat const &image)
+unique_ptr<Mat> Canny::gaussian_blur(Mat const &image)
 {
     CannyTimer();
     auto gaussian_kernel = cv::getGaussianKernel(5, 1.1);
 
-    Mat blurred;
+    auto blurred = make_unique<Mat>();
 
-    cv::filter2D(image, blurred, -1, gaussian_kernel);
+    cv::filter2D(image, *blurred, -1, gaussian_kernel);
 
     return blurred;
 }
 
-Canny::AngleMagniutude Canny::gradient_magnitude(Mat const &image)
+unique_ptr<Canny::AngleMagniutude> Canny::gradient_magnitude(Mat const &image)
 {
     CannyTimer();
     Mat gradient_x, gradient_y;
@@ -60,14 +62,14 @@ Canny::AngleMagniutude Canny::gradient_magnitude(Mat const &image)
     cv::Sobel(image, gradient_x, CV_32F, 1, 0);
     cv::Sobel(image, gradient_y, CV_32F, 0, 1);
 
-    AngleMagniutude am;
+    auto am = make_unique<AngleMagniutude>();
 
-    cv::cartToPolar(gradient_x, gradient_y, am.magnitude, am.angle);
+    cv::cartToPolar(gradient_x, gradient_y, am->magnitude, am->angle);
 
     return am;
 }
 
-Mat Canny::gradient_nonmaximum_suppresion(AngleMagniutude const &angle_magniutude)
+unique_ptr<Mat> Canny::gradient_nonmaximum_suppresion(AngleMagniutude const &angle_magniutude)
 {
     CannyTimer();
     auto const& angle = angle_magniutude.angle;
@@ -76,7 +78,8 @@ Mat Canny::gradient_nonmaximum_suppresion(AngleMagniutude const &angle_magniutud
     auto sx = angle.cols;
     auto sy = angle.rows;
 
-    Mat gradient_suppresed { angle.size(), CV_8U };
+    auto gradient_suppresed_ptr = make_unique<Mat>(angle.size(), CV_8U);
+    auto& gradient_suppresed = *gradient_suppresed_ptr.get();
     
     auto suppress_pixel = [&](auto x, auto y) {
         auto grad = angle.at<float>(y, x);
@@ -128,20 +131,20 @@ Mat Canny::gradient_nonmaximum_suppresion(AngleMagniutude const &angle_magniutud
         for (int x = 0; x < sx; x++)
             suppress_pixel(x, y);
     
-    return gradient_suppresed;
+    return gradient_suppresed_ptr;
 }
 
-Mat Canny::double_threshold(Mat const &image, double threshold_low, double threshold_high)
+unique_ptr<Mat> Canny::double_threshold(Mat const &image, double threshold_low, double threshold_high)
 {
     CannyTimer();
-    Mat thresholded { image.size(), CV_8U, cv::Scalar(Unimportant) };
+    auto thresholded = make_unique<Mat>(image.size(), CV_8U, cv::Scalar(Unimportant));
 
     auto threshold_pixel = [&](auto x, auto y) {
         auto val = image.at<uchar>(y, x);
         if (val >= threshold_high) {
-            thresholded.at<uchar>(y, x) = Strong;
+            thresholded->at<uchar>(y, x) = Strong;
         } else if (val >= threshold_low) {
-            thresholded.at<uchar>(y, x) = Weak;
+            thresholded->at<uchar>(y, x) = Weak;
         }
     };
 
@@ -152,13 +155,13 @@ Mat Canny::double_threshold(Mat const &image, double threshold_low, double thres
     return thresholded;
 }
 
-Mat Canny::hysteresis(Mat const &image)
+unique_ptr<Mat> Canny::hysteresis(Mat const &image)
 {
     CannyTimer();
-    Mat hystereised = Mat::zeros(image.size(), CV_8U);
+    auto hystereised = make_unique<Mat>(image.size(), CV_8U, cv::Scalar(0));
 
-    auto sx = hystereised.cols;
-    auto sy = hystereised.rows;
+    auto sx = hystereised->cols;
+    auto sy = hystereised->rows;
 
     Mat groups;
     // NOTE: This treats both weak and strong values as members of the same component
@@ -176,10 +179,7 @@ Mat Canny::hysteresis(Mat const &image)
     for (int y = 0; y < sy; y++)
         for (int x = 0; x < sx; x++)
             if (connected_groups.count(groups.at<int>(y, x)) > 0)
-                hystereised.at<uchar>(y, x) = 255;
+                hystereised->at<uchar>(y, x) = 255;
 
     return hystereised;
-    
-
-    return Mat();
 }

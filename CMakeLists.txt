@@ -11,7 +11,7 @@ add_executable(
     ps-robovi
     src/main.cpp
     src/mpi_main.cpp
-    src/pthread_main.cpp
+    src/pthread/pthread_main.cpp
     src/serial_main.cpp
     src/Canny.cpp
     src/Canny.h
@@ -19,6 +19,8 @@ add_executable(
     src/ImageOps.h
     src/ScopeTimer.cpp
     src/ScopeTimer.h
+    src/pthread/TaskQueue.cpp
+    src/pthread/TaskQueue.h
 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)

@@ -26,16 +26,17 @@ void ps_main(vector<string> args) {
         return;
     }
 
+    auto ps_main = std::move(args[0]);
     args.erase(args.begin());
 
-    if (args[0] == "mpi") {
+    if (ps_main == "mpi") {
         mpi_main(std::move(args));
-    } else if (args[0] == "pthread") {
+    } else if (ps_main == "pthread") {
         pthread_main(std::move(args));
-    } else if (args[0] == "serial") {
+    } else if (ps_main == "serial") {
         serial_main(std::move(args));
     } else {
-        cerr << "Prvi argument ni [pthread/mpi/serial]" << endl;
+        cerr << "Prvi argument ni [pthread/mpi/serial] [" << ps_main << "]" << endl;
         return;
     }
 }
