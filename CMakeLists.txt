@@ -24,4 +24,5 @@ add_executable(
 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
+set(CMAKE_CXX_FLAGS "-O2")
 target_link_libraries(ps-robovi PUBLIC pthread ${OpenCV_LIBS})
