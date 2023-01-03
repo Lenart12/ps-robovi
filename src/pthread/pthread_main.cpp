@@ -97,13 +97,11 @@ extern "C" void* process_queue_task(void* _arg) {
 }
 
 
-void pthread_main(vector<string> args) {
+void pthread_main(size_t thread_count, path input_directory, path output_directory, size_t images_count) {
     FunctionTimer();
 
     CannyTaskQueue queue;
 
-    path input_directory { "images" };
-    path output_directory { "output" };
     int i = 0;
     for (auto const& entry : directory_iterator(input_directory)) {
         queue.add_task(CannyTask {
@@ -117,17 +115,12 @@ void pthread_main(vector<string> args) {
             ),
             CannyTasks::ReadImage {}
         });
+        if (images_count != -1 && i == images_count) break;
     }
 
     vector<pthread_t> threads;
 
-    size_t n_threads = 8;
-
-    if (!args.empty()) {
-        n_threads = std::stoi(args[0]);
-    }
-
-    threads.resize(n_threads);
+    threads.resize(thread_count);
 
     for (auto& thread : threads) {
         pthread_create(&thread, nullptr, process_queue_task, &queue);

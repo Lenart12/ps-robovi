@@ -55,10 +55,26 @@ Zbuilda ce je potrebno in pozene na racunskih vozliscih
 
 `./run.sh (mpi/pthread/serial)`
 
-`./run.sh mpi [task count=8] argumenti...`
+`./run.sh mpi [task count=8] [input=./images] [output=./output] [count of images to process = all]`
 
-`./run.sh pthread [cpus per task=8] argumenti...`
+`./run.sh pthread [cpus per task=8] [input=./images] [output=./output] C`
 
-`./run.sh serial`
+`./run.sh serial [input=./images] [output=./output] [count of images to process = all]`
 
+## DOTA dataset
 
+```
+@ARTICLE{9560031,
+  author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
+  year={2021},
+  volume={},
+  number={},
+  pages={1-1},
+  doi={10.1109/TPAMI.2021.3117983}}
+```
+
+Prenesi z `./get_dota.sh` in bo v `dota/images` prenesel 940 testnih slik za procesiranje
+
+Uporabi z npr. `./run.sh pthread 8 dota/images output 10`

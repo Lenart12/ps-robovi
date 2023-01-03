@@ -34,6 +34,7 @@
 opencv*
 build
 output
+dota
 
 CMakeFiles
 cmake_install.cmake

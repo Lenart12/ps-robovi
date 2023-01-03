@@ -41,18 +41,17 @@ void test_lena_png() {
 }
 
 
-void serial_main(vector<string> args) {
+void serial_main(path input_directory, path output_directory, size_t images_count) {
     FunctionTimer();
 
-    path input_directory { "images" };
-    path output_directory { "output" };
-    
+    int i = 0;    
     for (auto const& entry : directory_iterator(input_directory)) {
         ScopeTimer image_timer {entry.path(), true};
         auto image = ImageOps::read_image(entry.path());
-        auto canny_image = Canny::canny(*image, 20, 150);
+        auto canny_image = Canny::canny(*image, 50, 150);
         auto output_path = output_directory / entry.path().filename();
         ImageOps::write_image(output_path.string(), *canny_image);
+        if (images_count != -1 && ++i == images_count) break;
     }
 }
 
