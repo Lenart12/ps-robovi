@@ -21,6 +21,8 @@ add_executable(
     src/ScopeTimer.h
     src/pthread/TaskQueue.cpp
     src/pthread/TaskQueue.h
+    src/PipelineTimer.cpp
+    src/PipelineTimer.h
 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)

@@ -24,13 +24,15 @@ using std::stringstream;
 #include "TaskQueue.h"
 #include "../ImageOps.h"
 #include "../ScopeTimer.h"
-
+#include "../PipelineTimer.h"
 
 template<class> inline constexpr bool always_false_v = false;
 
 extern "C" void* process_queue_task(void* _arg) {
     FunctionTimer();
     auto& queue = *static_cast<CannyTaskQueue*>(_arg);
+
+    PipelineTimings& timings = *new PipelineTimings;
     
     while (!queue.all_complete()) {
         auto maybe_task = queue.get_task();
@@ -43,35 +45,44 @@ extern "C" void* process_queue_task(void* _arg) {
                 using namespace CannyTasks;
 
                 if constexpr(is_same_v<T, ReadImage>) {
+                    auto t = timings.time_read_image();
+
                     auto image = ImageOps::read_image(task.properties->input_path);
 
                     auto next_task = task.create_from(GaussianBlur { std::move(image) });
                     queue.add_task(std::move(next_task));
                 }
                 else if constexpr (is_same_v<T, WriteImage>) {
+                    auto t = timings.time_write_image();
+
                     ImageOps::write_image(task.properties->output_path, *arg.image);
 
                     // TODO: Write in order
                 }
                 else if constexpr (is_same_v<T, GaussianBlur>) {
+                    auto t = timings.time_gaussian_blur();
+
                     auto blurred = Canny::gaussian_blur(*arg.image);
 
                     auto next_task = task.create_from(GradientMagnitude { std::move(blurred) });
                     queue.add_task(std::move(next_task));
                 }
                 else if constexpr (is_same_v<T, GradientMagnitude>) {
+                    auto t = timings.time_gradient_magnitude();
                     auto angle_magnitude = Canny::gradient_magnitude(*arg.blurred);
 
                     auto next_task = task.create_from(GradientNonmaximumSuppresion { std::move(angle_magnitude) });
                     queue.add_task(std::move(next_task));
                 }
                 else if constexpr (is_same_v<T, GradientNonmaximumSuppresion>) {
+                    auto t = timings.time_gradient_nonmaximum_suppresion();
                     auto nonmax = Canny::gradient_nonmaximum_suppresion(*arg.angle_magnitude);
 
                     auto next_task = task.create_from(DoubleThreshold { std::move(nonmax) });
                     queue.add_task(std::move(next_task));
                 }
                 else if constexpr (is_same_v<T, DoubleThreshold>) {
+                    auto t = timings.time_double_threshold();
                     auto threshold = Canny::double_threshold(
                         *arg.nonmax,
                         task.properties->threshold_low,
@@ -82,6 +93,7 @@ extern "C" void* process_queue_task(void* _arg) {
                     queue.add_task(std::move(next_task));
                 }
                 else if constexpr (is_same_v<T, Hysteresis>) {
+                    auto t = timings.time_hysteresis();
                     auto image = Canny::hysteresis(*arg.threshold);
 
                     auto next_task = task.create_from(WriteImage { std::move(image) });
@@ -95,7 +107,7 @@ extern "C" void* process_queue_task(void* _arg) {
         }
     }
     
-    return nullptr;
+    return &timings;
 }
 
 
@@ -134,9 +146,23 @@ void pthread_main(size_t thread_count, path input_directory, path output_directo
 
     queue.finish_adding_tasks();    
 
+    PipelineTimings total;
+
+    i = 0;
     for (auto& thread : threads) {
-        pthread_join(thread, nullptr);
+        void* ret;
+        pthread_join(thread, &ret);
+
+        auto& timings = *static_cast<PipelineTimings*>(ret);
+        cout << "Timings for thread " << i << endl;
+        cout << timings << endl;
+
+        total.combine_timings(timings);
+        delete &timings;
     }
+
+    cout << "Total timings" << endl;
+    cout << total << endl;
 }
 
 
