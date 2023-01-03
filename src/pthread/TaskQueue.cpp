@@ -31,6 +31,11 @@ void CannyTaskQueue::mark_task_finished()
     pthread_mutex_unlock(&queue_lock);
 }
 
+void CannyTaskQueue::finish_adding_tasks()
+{
+    mark_task_finished();
+}
+
 bool CannyTaskQueue::all_complete()
 {
     pthread_mutex_lock(&queue_lock);

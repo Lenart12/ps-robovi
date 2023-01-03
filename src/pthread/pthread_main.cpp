@@ -104,6 +104,14 @@ void pthread_main(size_t thread_count, path input_directory, path output_directo
 
     CannyTaskQueue queue;
 
+    vector<pthread_t> threads;
+
+    threads.resize(thread_count);
+
+    for (auto& thread : threads) {
+        pthread_create(&thread, nullptr, process_queue_task, &queue);
+    }
+
     int i = 0;
     for (auto const& entry : directory_iterator(input_directory)) {
         stringstream timer_name;
@@ -124,13 +132,7 @@ void pthread_main(size_t thread_count, path input_directory, path output_directo
         if (images_count != -1 && i == images_count) break;
     }
 
-    vector<pthread_t> threads;
-
-    threads.resize(thread_count);
-
-    for (auto& thread : threads) {
-        pthread_create(&thread, nullptr, process_queue_task, &queue);
-    }
+    queue.finish_adding_tasks();    
 
     for (auto& thread : threads) {
         pthread_join(thread, nullptr);

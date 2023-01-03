@@ -89,11 +89,12 @@ public:
     void add_task(CannyTask&& task);
     optional<CannyTask> get_task();
     void mark_task_finished();
+    void finish_adding_tasks();
     bool all_complete();
 
 private:
     queue<CannyTask> tasks {};
-    size_t processing_tasks = 0;
+    size_t processing_tasks = 1;
     pthread_mutex_t queue_lock;
 };
 
