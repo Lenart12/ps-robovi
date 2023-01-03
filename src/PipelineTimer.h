@@ -38,6 +38,7 @@ public:
     PipelineTimer time_gradient_nonmaximum_suppresion();
     PipelineTimer time_double_threshold();
     PipelineTimer time_hysteresis();
+    milliseconds total_time();
 
     void combine_timings(PipelineTimings const& other);
 

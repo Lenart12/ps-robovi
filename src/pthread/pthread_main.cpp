@@ -154,7 +154,7 @@ void pthread_main(size_t thread_count, path input_directory, path output_directo
         pthread_join(thread, &ret);
 
         auto& timings = *static_cast<PipelineTimings*>(ret);
-        cout << "Timings for thread " << i << endl;
+        cout << "Timings for thread " << i++ << endl;
         cout << timings << endl;
 
         total.combine_timings(timings);
@@ -163,6 +163,8 @@ void pthread_main(size_t thread_count, path input_directory, path output_directo
 
     cout << "Total timings" << endl;
     cout << total << endl;
+    cout << "Total time " << total.total_time().count() << "ms" << endl;
+    cout << "Per thread " << total.total_time().count() / thread_count << "ms" << endl;
 }
 
 

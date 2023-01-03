@@ -31,6 +31,17 @@ PipelineTimings::PipelineTimer PipelineTimings::time_gradient_nonmaximum_suppres
 PipelineTimings::PipelineTimer PipelineTimings::time_double_threshold() { return PipelineTimer {double_threshold}; }
 PipelineTimings::PipelineTimer PipelineTimings::time_hysteresis() { return PipelineTimer {hysteresis}; }
 
+milliseconds PipelineTimings::total_time()
+{
+    return read_image +
+    write_image +
+    gaussian_blur +
+    gradient_magnitude +
+    gradient_nonmaximum_suppresion +
+    double_threshold +
+    hysteresis;
+}
+
 void PipelineTimings::combine_timings(PipelineTimings const &other)
 {
     read_image += other.read_image;
