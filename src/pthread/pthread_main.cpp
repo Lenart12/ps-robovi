@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <memory>
 #include <cstdio>
+#include <sstream>
 
 using std::vector;
 using std::string;
@@ -15,6 +16,7 @@ using std::filesystem::path;
 using std::filesystem::directory_iterator;
 using std::decay_t;
 using std::is_same_v;
+using std::stringstream;
 
 #include <unistd.h>
 #include <pthread.h>
@@ -104,17 +106,21 @@ void pthread_main(size_t thread_count, path input_directory, path output_directo
 
     int i = 0;
     for (auto const& entry : directory_iterator(input_directory)) {
+        stringstream timer_name;
+        timer_name << entry.path().filename().string() << " [" << i << ']';
+
         queue.add_task(CannyTask {
             make_shared<CannyTask::Properties>(
                 entry.path(),
                 output_directory / entry.path().filename(),
                 50,
                 150,
-                i++,
-                ScopeTimer {entry.path().filename(), true}
+                i,
+                ScopeTimer {timer_name.str(), true}
             ),
             CannyTasks::ReadImage {}
         });
+        i++;
         if (images_count != -1 && i == images_count) break;
     }
 

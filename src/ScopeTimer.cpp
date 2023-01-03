@@ -26,4 +26,5 @@ ScopeTimer::~ScopeTimer()
     auto elapsed_ms = duration_cast<milliseconds>(end_time - m_time).count();
     if (elapsed_ms == 0 && !m_bShowZero) return;
     printf("%s timer finished after %dms\n", m_name.c_str(), elapsed_ms);
+    fflush(stdout);
 }
