@@ -7,155 +7,128 @@
 #include <cassert>
 #include <mpi.h>
 
+#include "MPITasks.h"
 #include "../ImageOps.h"
 #include "../Canny.h"
+#include "../ScopeTimer.h"
+
 
 using std::byte;
 using std::cout;
-using std::decay_t;
 using std::endl;
-using std::is_same_v;
-using std::make_shared;
 using std::string;
 using std::stringstream;
-using std::vector;
 using std::filesystem::directory_iterator;
 using std::filesystem::path;
 
-directory_iterator it;
-directory_iterator end;
-path output;
+using Role = MPITasks::Role;
 
-int rank;
-int size;
-
-int counter{0};
-
-void sendImage(unique_ptr<cv::Mat> &image)
-{
-    cv::Mat i = *image;
-    int size = i.total() * i.elemSize();
-    int *dim = new int[4]{i.rows, i.cols, size, i.type()};
-
-    MPI_Send(dim, 4, MPI_INT, rank + 1, rank, MPI_COMM_WORLD);
-    MPI_Send(i.data, size, MPI_BYTE, rank + 1, rank, MPI_COMM_WORLD);
-    free(dim);
-}
-
-unique_ptr<cv::Mat> getImage()
-{
-
-    int *dim = new int[4];
-    MPI_Recv(dim, 4, MPI_INTEGER, rank - 1, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    const int size = dim[2];
-    byte *bytes = new byte[size];
-
-    MPI_Recv(bytes, size, MPI_BYTE, rank - 1, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    unique_ptr<cv::Mat> image = unique_ptr<cv::Mat>(new Mat(dim[0], dim[1], dim[3], bytes));
-
-    return image;
-}
-
-void writeImage(int num, unique_ptr<cv::Mat> &image)
-{
-    ImageOps::write_image(output.string() + "/slika" + std::to_string(num) + ".jpg", *image);
-}
-
-unique_ptr<cv::Mat> readImage()
-{
-    if (it == end)
-    {
-        return unique_ptr<cv::Mat>(nullptr);
-    }
-
-    auto const &entry = *it;
-    cout << entry.path().string() << endl;
-    unique_ptr<cv::Mat> image = ImageOps::read_image(entry.path().string());
-
-    ++it;
-    return image;
-}
+unique_ptr<MPITasks> t;
 
 bool findEdges()
 {
+    static int counter = 0;
 
-    switch (rank)
+    switch (t->getRole())
     {
-    case 0:
+    case Role::LoadImage:
     {
         // Beri sliko
-        unique_ptr<cv::Mat> image = readImage();
-        sendImage(image);
-        break;
+        unique_ptr<cv::Mat> image = t->readImage();
+        if (image == nullptr)
+            return false;
+
+        t->sendImage(image);
+        return true;
     }
 
-    case 1:
+    case Role::GaussianBlur:
     {
         // Gaussian blur
-        unique_ptr<cv::Mat> image = getImage();
+        unique_ptr<cv::Mat> image = t->recvImage();
+        if (image == nullptr)
+            return false;
+
         image = Canny::gaussian_blur(*image);
-        sendImage(image);
+        t->sendImage(image);
         break;
     }
 
-    case 2:
+    case Role::GradientMagnitude:
     {
         // Racunanje gradienta
-        unique_ptr<cv::Mat> image = getImage();
+        unique_ptr<cv::Mat> image = t->recvImage();
+        if (image == nullptr)
+            return false;
+
         auto am = Canny::gradient_magnitude(*image);
 
         unique_ptr<cv::Mat> pa = unique_ptr<cv::Mat>(new Mat(am->angle));
-        sendImage(pa);
+        t->sendImage(pa);
 
         unique_ptr<cv::Mat> pm = unique_ptr<cv::Mat>(new Mat(am->magnitude));
-        sendImage(pm);
+        t->sendImage(pm);
         break;
     }
 
-    case 3:
+    case Role::NonMaximumSuppresion:
     {
         // Tansanje robov
-        unique_ptr<cv::Mat> pa = getImage();
-        unique_ptr<cv::Mat> pm = getImage();
+        unique_ptr<cv::Mat> pa = t->recvImage();
+        if (pa == nullptr)
+            return false;
+        unique_ptr<cv::Mat> pm = t->recvImage();
 
         Canny::AngleMagniutude am{*pa, *pm};
         unique_ptr<cv::Mat> image = Canny::gradient_nonmaximum_suppresion(am);
-        sendImage(image);
+        t->sendImage(image);
         break;
     }
 
-    case 4:
+    case Role::DoubleThreshold:
     {
         // Dvojno upragovanje
-        unique_ptr<cv::Mat> image = getImage();
+        unique_ptr<cv::Mat> image = t->recvImage();
+        if (image == nullptr)
+            return false;
+
         image = Canny::double_threshold(*image, 50, 150);
-        sendImage(image);
+        t->sendImage(image);
         break;
     }
 
-    case 5:
+    case Role::Hysteresis:
     {
         // Sledenje robovom s pomočjo histereze
-        unique_ptr<cv::Mat> image = getImage();
+        unique_ptr<cv::Mat> image = t->recvImage();
+        if (image == nullptr)
+            return false;
+
         image = Canny::hysteresis(*image);
-        sendImage(image);
+        t->sendImage(image);
         break;
     }
 
-    case 6:
+    case Role::SaveImage:
     {
         // Shrani sliko
-        unique_ptr<cv::Mat> image = getImage();
-        writeImage(6, image);
+        unique_ptr<cv::Mat> image = t->recvImage();
+        if (image == nullptr)
+            return false;
+
+        t->writeImage(counter++, image);
         break;
     }
     }
 
-    return false;
+    return true;
 }
 
 void mpi_main(size_t node_count, path input_directory, path output_directory, size_t images_count)
 {
+    FunctionTimer();
+
+    int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
@@ -163,12 +136,17 @@ void mpi_main(size_t node_count, path input_directory, path output_directory, si
 
     cout << "Mpi [" << rank << "/" << size << "]" << endl;
 
-    output = output_directory;
+    directory_iterator it;
     if (rank == 0)
     {
         it = directory_iterator(input_directory);
     }
 
-    findEdges();
+    int sendTo = (rank + 1 == size) ? -1 : rank + 1;
+    t = unique_ptr<MPITasks>(new MPITasks(it, output_directory, rank, sendTo));
+
+    while (findEdges())
+    {
+    };
     cout << "NIT " << rank << " je koncala" << endl;
 }
