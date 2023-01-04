@@ -6,10 +6,11 @@ Ko kopiras ukaze pazi da ne prekopiras zraven \` na zacetku ali koncu
 
 # 1. Install OpenCV
 
-Ne preskoci nobenega ukaza tudi ce se ti zdi preprost usi so pomembni, razen ciscenje ce si dirty boy
+Ne preskoci nobenega ukaza tudi ce se ti zdi preprost usi so pomembni, razen ciscenje ce si dirty boy ;)
 
 ## Priprava odvisnosti
 
+<!-- `module load "OpenBLAS/0.3.20-GCC-11.3.0"` -->
 `module load "CMake/3.23.1-GCCcore-11.3.0"`
 
 `cp -r /usr/include/openblas $HOME/.local/include`

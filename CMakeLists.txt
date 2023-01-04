@@ -10,7 +10,7 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 add_executable(
     ps-robovi
     src/main.cpp
-    src/mpi_main.cpp
+    src/mpi/mpi_main.cpp
     src/pthread/pthread_main.cpp
     src/serial_main.cpp
     src/Canny.cpp
