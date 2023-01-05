@@ -120,11 +120,9 @@ void pthread_main(size_t thread_count, path input_directory, path output_directo
         pthread_create(&thread, nullptr, process_queue_task, &queue);
     }
     int i = 0;
-    for (auto const& entry : 
-                directory_iterator(input_directory)) {
+    for (auto const& entry : directory_iterator(input_directory)) {
         stringstream timer_name;
-        timer_name << entry.path().filename().string()
-                    << " [" << i << ']';
+        timer_name << entry.path().filename().string() << " [" << i << ']';
 
         queue.add_task(CannyTask {
             make_shared<CannyTask::Properties>(
