@@ -16,20 +16,15 @@ void CannyTaskQueue::add_task(CannyTask &&task)
     pthread_mutex_unlock(&queue_lock);
 }
 
-optional<CannyTask> CannyTaskQueue::get_task()
-{
+optional<CannyTask> CannyTaskQueue::get_task(){
     pthread_mutex_lock(&queue_lock);
-
     while (tasks.empty() && processing_tasks > 0) {
         pthread_cond_wait(&empty_queue_cond, &queue_lock);
     }
-
     if (processing_tasks == 0) {
         pthread_mutex_unlock(&queue_lock);
         return std::nullopt;
     }
-
-
     auto task = std::move(tasks.front());
     tasks.pop();
     pthread_mutex_unlock(&queue_lock);
