@@ -113,17 +113,12 @@ extern "C" void* process_queue_task(void* _arg) {
 
 void pthread_main(size_t thread_count, path input_directory, path output_directory, size_t images_count) {
     FunctionTimer();
-
     CannyTaskQueue queue;
-
     vector<pthread_t> threads;
-
     threads.resize(thread_count);
-
     for (auto& thread : threads) {
         pthread_create(&thread, nullptr, process_queue_task, &queue);
     }
-
     int i = 0;
     for (auto const& entry : directory_iterator(input_directory)) {
         stringstream timer_name;
