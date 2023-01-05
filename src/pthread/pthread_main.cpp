@@ -34,77 +34,77 @@ extern "C" void* process_queue_task(void* _arg) {
 
     PipelineTimings& timings = *new PipelineTimings;
     
-    while (!queue.all_complete()) {
+    while (true) {
         auto maybe_task = queue.get_task();
 
-        if (maybe_task.has_value()) {
-            auto& task = maybe_task.value();
+        if (!maybe_task.has_value()) break;
 
-            std::visit([&](auto&& arg) {
-                using T = decay_t<decltype(arg)>;
-                using namespace CannyTasks;
+        auto& task = maybe_task.value();
 
-                if constexpr(is_same_v<T, ReadImage>) {
-                    auto t = timings.time_read_image();
+        std::visit([&](auto&& arg) {
+            using T = decay_t<decltype(arg)>;
+            using namespace CannyTasks;
 
-                    auto image = ImageOps::read_image(task.properties->input_path);
+            if constexpr(is_same_v<T, ReadImage>) {
+                auto t = timings.time_read_image();
 
-                    auto next_task = task.create_from(GaussianBlur { std::move(image) });
-                    queue.add_task(std::move(next_task));
-                }
-                else if constexpr (is_same_v<T, WriteImage>) {
-                    auto t = timings.time_write_image();
+                auto image = ImageOps::read_image(task.properties->input_path);
 
-                    ImageOps::write_image(task.properties->output_path, *arg.image);
+                auto next_task = task.create_from(GaussianBlur { std::move(image) });
+                queue.add_task(std::move(next_task));
+            }
+            else if constexpr (is_same_v<T, WriteImage>) {
+                auto t = timings.time_write_image();
 
-                    // TODO: Write in order
-                }
-                else if constexpr (is_same_v<T, GaussianBlur>) {
-                    auto t = timings.time_gaussian_blur();
+                ImageOps::write_image(task.properties->output_path, *arg.image);
 
-                    auto blurred = Canny::gaussian_blur(*arg.image);
+                // TODO: Write in order
+            }
+            else if constexpr (is_same_v<T, GaussianBlur>) {
+                auto t = timings.time_gaussian_blur();
 
-                    auto next_task = task.create_from(GradientMagnitude { std::move(blurred) });
-                    queue.add_task(std::move(next_task));
-                }
-                else if constexpr (is_same_v<T, GradientMagnitude>) {
-                    auto t = timings.time_gradient_magnitude();
-                    auto angle_magnitude = Canny::gradient_magnitude(*arg.blurred);
+                auto blurred = Canny::gaussian_blur(*arg.image);
 
-                    auto next_task = task.create_from(GradientNonmaximumSuppresion { std::move(angle_magnitude) });
-                    queue.add_task(std::move(next_task));
-                }
-                else if constexpr (is_same_v<T, GradientNonmaximumSuppresion>) {
-                    auto t = timings.time_gradient_nonmaximum_suppresion();
-                    auto nonmax = Canny::gradient_nonmaximum_suppresion(*arg.angle_magnitude);
+                auto next_task = task.create_from(GradientMagnitude { std::move(blurred) });
+                queue.add_task(std::move(next_task));
+            }
+            else if constexpr (is_same_v<T, GradientMagnitude>) {
+                auto t = timings.time_gradient_magnitude();
+                auto angle_magnitude = Canny::gradient_magnitude(*arg.blurred);
 
-                    auto next_task = task.create_from(DoubleThreshold { std::move(nonmax) });
-                    queue.add_task(std::move(next_task));
-                }
-                else if constexpr (is_same_v<T, DoubleThreshold>) {
-                    auto t = timings.time_double_threshold();
-                    auto threshold = Canny::double_threshold(
-                        *arg.nonmax,
-                        task.properties->threshold_low,
-                        task.properties->threshold_high
-                    );
+                auto next_task = task.create_from(GradientNonmaximumSuppresion { std::move(angle_magnitude) });
+                queue.add_task(std::move(next_task));
+            }
+            else if constexpr (is_same_v<T, GradientNonmaximumSuppresion>) {
+                auto t = timings.time_gradient_nonmaximum_suppresion();
+                auto nonmax = Canny::gradient_nonmaximum_suppresion(*arg.angle_magnitude);
 
-                    auto next_task = task.create_from(Hysteresis { std::move(threshold) });
-                    queue.add_task(std::move(next_task));
-                }
-                else if constexpr (is_same_v<T, Hysteresis>) {
-                    auto t = timings.time_hysteresis();
-                    auto image = Canny::hysteresis(*arg.threshold);
+                auto next_task = task.create_from(DoubleThreshold { std::move(nonmax) });
+                queue.add_task(std::move(next_task));
+            }
+            else if constexpr (is_same_v<T, DoubleThreshold>) {
+                auto t = timings.time_double_threshold();
+                auto threshold = Canny::double_threshold(
+                    *arg.nonmax,
+                    task.properties->threshold_low,
+                    task.properties->threshold_high
+                );
 
-                    auto next_task = task.create_from(WriteImage { std::move(image) });
-                    queue.add_task(std::move(next_task));
-                }
-                else
-                    static_assert(always_false_v<T>, "non-exhaustive visitor!");
-            }, task.task);
+                auto next_task = task.create_from(Hysteresis { std::move(threshold) });
+                queue.add_task(std::move(next_task));
+            }
+            else if constexpr (is_same_v<T, Hysteresis>) {
+                auto t = timings.time_hysteresis();
+                auto image = Canny::hysteresis(*arg.threshold);
 
-            queue.mark_task_finished();
-        }
+                auto next_task = task.create_from(WriteImage { std::move(image) });
+                queue.add_task(std::move(next_task));
+            }
+            else
+                static_assert(always_false_v<T>, "non-exhaustive visitor!");
+        }, task.task);
+
+        queue.mark_task_finished();
     }
     
     return &timings;

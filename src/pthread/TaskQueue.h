@@ -84,18 +84,21 @@ class CannyTaskQueue {
 public:
     explicit CannyTaskQueue()
         : queue_lock(PTHREAD_MUTEX_INITIALIZER)
+        , empty_queue_cond(PTHREAD_COND_INITIALIZER)
         {}
+
+    ~CannyTaskQueue();
 
     void add_task(CannyTask&& task);
     optional<CannyTask> get_task();
     void mark_task_finished();
     void finish_adding_tasks();
-    bool all_complete();
 
 private:
     queue<CannyTask> tasks {};
     size_t processing_tasks = 1;
     pthread_mutex_t queue_lock;
+    pthread_cond_t empty_queue_cond;
 };
 
 #endif /* SRC_PTHREAD_TASK_QUEUE_H */
