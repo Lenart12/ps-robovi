@@ -11,6 +11,7 @@
 using std::byte;
 using std::unique_ptr;
 using std::string;
+using std::array;
 using std::filesystem::directory_iterator;
 using std::filesystem::path;
 using std::unique_ptr;
@@ -21,11 +22,10 @@ void MPITasks::sendImage(unique_ptr<cv::Mat> &image)
 {
     cv::Mat i = *image;
     int size = i.total() * i.elemSize();
-    int *dim = new int[4]{i.rows, i.cols, size, i.type()};
+    auto dim = array<int,4> {i.rows, i.cols, size, i.type()};
 
-    MPI_Send(dim, 4, MPI_INT, sendTo, 0, MPI_COMM_WORLD);
+    MPI_Send(dim.data(), 4, MPI_INT, sendTo, 0, MPI_COMM_WORLD);
     MPI_Send(i.data, size, MPI_BYTE, sendTo, 0, MPI_COMM_WORLD);
-    free(dim);
 }
 
 unique_ptr<cv::Mat> MPITasks::recvImage()
@@ -58,9 +58,8 @@ unique_ptr<cv::Mat> MPITasks::readImage()
 {
     if (it == end)
     {
-        int *dim = new int[4] {-1, -1, -1, -1};
-        printf("KER JE KONEC POSILJAM ZNAK DA JE KONEC NA %d\n", sendTo);
-        MPI_Send(dim, 4, MPI_INT, sendTo, 0, MPI_COMM_WORLD);
+        auto dim = array<int,4> {-1, -1, -1, -1};
+        MPI_Send(dim.data(), 4, MPI_INT, sendTo, 0, MPI_COMM_WORLD);
         return nullptr;
     }
 

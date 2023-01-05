@@ -148,5 +148,5 @@ void mpi_main(size_t node_count, path input_directory, path output_directory, si
     while (findEdges())
     {
     };
-    cout << "NIT " << rank << " je koncala" << endl;
+    cout << "PROCES " << rank << " je koncal" << endl;
 }
