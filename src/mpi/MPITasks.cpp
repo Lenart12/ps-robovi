@@ -20,6 +20,7 @@ using Role = MPITasks::Role;
 
 void MPITasks::sendImage(unique_ptr<cv::Mat> &image)
 {
+    auto t = casi.time_read_image();
     cv::Mat i = *image;
     int size = i.total() * i.elemSize();
     auto dim = array<int,4> {i.rows, i.cols, size, i.type()};
@@ -30,6 +31,7 @@ void MPITasks::sendImage(unique_ptr<cv::Mat> &image)
 
 unique_ptr<cv::Mat> MPITasks::recvImage()
 {
+    auto t = casi.time_write_image();
     int *dim = new int[4];
     unique_ptr<cv::Mat> image;
     MPI_Recv(dim, 4, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);

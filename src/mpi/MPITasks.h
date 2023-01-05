@@ -2,6 +2,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include <filesystem>
+#include "../PipelineTimer.h"
 
 using std::cout;
 using std::endl;
@@ -24,6 +25,7 @@ class MPITasks {
     void writeImage(int, unique_ptr<cv::Mat>&);
     unique_ptr<cv::Mat> readImage();
     Role getRole();
+    PipelineTimings casi;
 
     private:
     directory_iterator it;

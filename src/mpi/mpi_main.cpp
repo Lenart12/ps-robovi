@@ -126,8 +126,6 @@ bool findEdges()
 
 void mpi_main(size_t node_count, path input_directory, path output_directory, size_t images_count)
 {
-    FunctionTimer();
-
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -145,8 +143,21 @@ void mpi_main(size_t node_count, path input_directory, path output_directory, si
     int sendTo = (rank + 1 == size) ? -1 : rank + 1;
     t = unique_ptr<MPITasks>(new MPITasks(it, output_directory, rank, sendTo));
 
+    {
+    auto time = t->casi.time_hysteresis();
     while (findEdges())
     {
     };
+    }
     cout << "PROCES " << rank << " je koncal" << endl;
+
+    auto posiljanje = t->casi.read_image.count();
+    auto prejemanje = t->casi.write_image.count();
+    auto vse = t->casi.hysteresis.count();
+    auto racunanje = vse - posiljanje - prejemanje;
+
+    cout << "CAS ZA POSILJANJE : " << posiljanje << "ms + CASI ZA PREJEMANJE " << prejemanje << "ms = "<< (posiljanje + prejemanje) << endl;
+    cout << "SKUPEN CAS : " << vse << "ms" << endl;
+    cout << "RACUNANJE : " << racunanje << "ms" << endl;
+
 }
