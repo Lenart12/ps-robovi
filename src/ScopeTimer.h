@@ -12,7 +12,6 @@
 
 using std::string;
 using namespace std::chrono;
-
 #define FunctionTimer()         ScopeTimer __function_timer{__PRETTY_FUNCTION__, true}
 #define FunctionNonzeroTimer()     ScopeTimer __function_zero_timer{__PRETTY_FUNCTION__, false}
 
