@@ -22,15 +22,23 @@ using std::stringstream;
 #include <pthread.h>
 
 #include "TaskQueue.h"
+#include "WriterQueue.h"
 #include "../ImageOps.h"
 #include "../ScopeTimer.h"
 #include "../PipelineTimer.h"
 
 template<class> inline constexpr bool always_false_v = false;
 
+struct ProcessingQueues {
+    CannyTaskQueue *task_queue;
+    WriterQueue *writer_queue;
+};
+
 extern "C" void* process_queue_task(void* _arg) {
     FunctionTimer();
-    auto& queue = *static_cast<CannyTaskQueue*>(_arg);
+    auto& queues = *static_cast<ProcessingQueues*>(_arg);
+    auto& queue = *queues.task_queue;
+    auto& writer_queue = *queues.writer_queue;
 
     PipelineTimings& timings = *new PipelineTimings;
     
@@ -56,9 +64,7 @@ extern "C" void* process_queue_task(void* _arg) {
             else if constexpr (is_same_v<T, WriteImage>) {
                 auto t = timings.time_write_image();
 
-                ImageOps::write_image(task.properties->output_path, *arg.image);
-
-                // TODO: Write in order
+                writer_queue.write(std::move(arg.image), task.properties->output_path, task.properties->image_order);
             }
             else if constexpr (is_same_v<T, GaussianBlur>) {
                 auto t = timings.time_gaussian_blur();
@@ -114,11 +120,18 @@ extern "C" void* process_queue_task(void* _arg) {
 void pthread_main(size_t thread_count, path input_directory, path output_directory, size_t images_count) {
     FunctionTimer();
     CannyTaskQueue queue;
+    WriterQueue writer_queue;
+
+    ProcessingQueues queues {&queue, &writer_queue};
+
     vector<pthread_t> threads;
     threads.resize(thread_count);
     for (auto& thread : threads) {
-        pthread_create(&thread, nullptr, process_queue_task, &queue);
+        pthread_create(&thread, nullptr, process_queue_task, &queues);
     }
+
+    const bool write_in_order = true;
+
     int i = 0;
     for (auto const& entry : directory_iterator(input_directory)) {
         stringstream timer_name;
@@ -130,7 +143,7 @@ void pthread_main(size_t thread_count, path input_directory, path output_directo
                 output_directory / entry.path().filename(),
                 50,
                 150,
-                i,
+                write_in_order ? i : -1,
                 ScopeTimer {timer_name.str(), true}
             ),
             CannyTasks::ReadImage {}

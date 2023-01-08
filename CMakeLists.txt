@@ -22,6 +22,8 @@ add_executable(
     src/ScopeTimer.h
     src/pthread/TaskQueue.cpp
     src/pthread/TaskQueue.h
+    src/pthread/WriterQueue.cpp
+    src/pthread/WriterQueue.h
     src/PipelineTimer.cpp
     src/PipelineTimer.h
 )
